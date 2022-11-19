@@ -9,10 +9,10 @@ type User struct {
 	Name      string    `gorm:"not null" json:"name"`
 	Email     string    `gorm:"not null" json:"email"`
 	Password  string    `gorm:"not null" json:"password"`
-	IsManager bool      `json:"manager"`
+	IsManager bool      `json:"is_manager"`
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	Tasks     []Task    `gorm:"ForeignKey:UserId" json:"tasks"`
+	Tasks     []Task    `gorm:"ForeignKey:UserId" json:"tasks,omitempty"`
 }
 
 func (user *User) TableName() string {
