@@ -62,6 +62,10 @@ func Authenticate() gin.HandlerFunc {
 					return
 				}
 
+				// data := claims["user"].(map[string]interface{})
+				// isManager := data["is_manager"].(bool)
+				// userId := data["id"].(float64)
+
 				c.Set("isManager", user.IsManager)
 				c.Set("userId", user.ID)
 

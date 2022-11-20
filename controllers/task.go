@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hugohenrick/gtasks/database"
 	"github.com/hugohenrick/gtasks/models"
+	"github.com/hugohenrick/gtasks/repository"
 	"github.com/hugohenrick/gtasks/utils"
 )
 
@@ -33,7 +34,12 @@ func GetTasks(c *gin.Context) {
 		task.UserId = userId
 	}
 
-	database.DB.Preload("User").Find(&tasks, task)
+	tasks, err := repository.RepositoryServices.FindTasks(task)
+	if err != nil {
+		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v: %v", utils.InvalidJsonProvided, err))
+		return
+	}
+
 	utils.SendJSONResponse(c, http.StatusOK, tasks)
 }
 
@@ -160,12 +166,6 @@ func ExecuteTask(c *gin.Context) {
 		return
 	}
 
-	database.DB.First(&task, id)
-	if task.ID == 0 {
-		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", utils.TaskNotFound))
-		return
-	}
-
 	userIdRaw, ok := c.Get("userId")
 	if !ok || userIdRaw == nil {
 		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", utils.UserWithoutAccesPermission))
@@ -183,6 +183,11 @@ func ExecuteTask(c *gin.Context) {
 	timeNow := time.Now()
 	task.FinishedAt = &timeNow
 
-	database.DB.Save(&task)
+	_, err := repository.RepositoryServices.ExecuteTask(id, task)
+	if err != nil {
+		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v: %v", utils.InvalidJsonProvided, err))
+		return
+	}
+
 	utils.SendJSONResponse(c, http.StatusOK, "success")
 }

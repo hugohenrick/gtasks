@@ -12,6 +12,8 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/hugohenrick/gtasks/database"
+	"github.com/hugohenrick/gtasks/middlewares"
+	"github.com/hugohenrick/gtasks/repository"
 	"github.com/hugohenrick/gtasks/routes"
 	"github.com/hugohenrick/gtasks/utils"
 	"golang.org/x/text/cases"
@@ -54,6 +56,8 @@ func main() {
 	// 	os.Exit(1)
 	// }
 
+	router.Use(middlewares.Authenticate())
+
 	routes.AddUserRoutes(router)
 	routes.AddTaskRoutes(router)
 
@@ -65,6 +69,7 @@ func main() {
 	// start API server
 	go func() {
 		database.Conn()
+		repository.RepositoryServices = repository.NewTaskRepository()
 
 		fmt.Printf("%s API listening on port %s\n", cases.Title(language.AmericanEnglish).String(os.Getenv("SERVICE")), httpPort)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
