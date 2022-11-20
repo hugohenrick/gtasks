@@ -13,6 +13,6 @@ RUN go get github.com/hugohenrick/gtasks
 
 ADD . .
 
-EXPOSE 8000
+EXPOSE 8080
 
 ENTRYPOINT gtasks --build="go build main.go" --command=./main

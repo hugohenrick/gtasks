@@ -45,21 +45,18 @@ func main() {
 		httpPort = ":" + os.Getenv("SERVER_PORT")
 	}
 
-	//Microservices:
-	// switch os.Getenv("SERVICE") {
-	// case "users":
-	// 	routes.AddUserRoutes(router)
-	// case "tasks":
-	// 	routes.AddTaskRoutes(router)
-	// default:
-	// 	fmt.Println("SERVICE env var must be one of [ users, tasks ]")
-	// 	os.Exit(1)
-	// }
-
 	router.Use(middlewares.Authenticate())
 
-	routes.AddUserRoutes(router)
-	routes.AddTaskRoutes(router)
+	//Microservices:
+	switch os.Getenv("SERVICE") {
+	case "users":
+		routes.AddUserRoutes(router)
+	case "tasks":
+		routes.AddTaskRoutes(router)
+	default:
+		routes.AddUserRoutes(router)
+		routes.AddTaskRoutes(router)
+	}
 
 	server := &http.Server{
 		Addr:    httpPort,

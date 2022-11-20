@@ -23,19 +23,16 @@ type TaskRepository struct {
 	Database *gorm.DB
 }
 
-// type TaskRepository struct {
-// }
-
 var RepositoryServices ITaskRepository
 
 func NewTaskRepository() ITaskRepository {
 	return &TaskRepository{Database: database.DB}
 }
 
-func (repo *TaskRepository) FindTasks(task models.Task) ([]models.Task, error) {
+func (t *TaskRepository) FindTasks(task models.Task) ([]models.Task, error) {
 	var tasks []models.Task
 
-	result := repo.Database.Preload("User").Find(&tasks, task)
+	result := t.Database.Preload("User").Find(&tasks, task)
 
 	if result.RowsAffected == 0 {
 		return []models.Task{}, errors.New("payment data not found")
@@ -44,10 +41,10 @@ func (repo *TaskRepository) FindTasks(task models.Task) ([]models.Task, error) {
 	return tasks, nil
 }
 
-func (repo *TaskRepository) FindTaskById(id string) (models.Task, error) {
+func (t *TaskRepository) FindTaskById(id string) (models.Task, error) {
 	var task models.Task
 
-	result := repo.Database.First(&task, "id = ?", id)
+	result := t.Database.First(&task, "id = ?", id)
 
 	if result.RowsAffected == 0 {
 		return models.Task{}, errors.New("payment data not found")
@@ -56,8 +53,8 @@ func (repo *TaskRepository) FindTaskById(id string) (models.Task, error) {
 	return task, nil
 }
 
-func (repo *TaskRepository) CreateTask(task models.Task) (models.Task, error) {
-	result := repo.Database.Create(&task)
+func (t *TaskRepository) CreateTask(task models.Task) (models.Task, error) {
+	result := t.Database.Create(&task)
 
 	if result.RowsAffected == 0 {
 		return models.Task{}, errors.New("task not created")
@@ -66,14 +63,14 @@ func (repo *TaskRepository) CreateTask(task models.Task) (models.Task, error) {
 	return task, nil
 }
 
-func (repo *TaskRepository) UpdateTask(id string, task models.Task) (models.Task, error) {
-	repo.Database.First(&task, id)
+func (t *TaskRepository) UpdateTask(id string, task models.Task) (models.Task, error) {
+	t.Database.First(&task, id)
 
 	if task.ID == 0 {
 		return models.Task{}, errors.New(utils.TaskNotFound)
 	}
 
-	result := repo.Database.Save(&task)
+	result := t.Database.Save(&task)
 
 	if result.RowsAffected == 0 {
 		return models.Task{}, errors.New("task not save")
@@ -82,15 +79,15 @@ func (repo *TaskRepository) UpdateTask(id string, task models.Task) (models.Task
 	return task, nil
 }
 
-func (repo *TaskRepository) DeleteTask(id string) (int64, error) {
+func (t *TaskRepository) DeleteTask(id string) (int64, error) {
 	var deletedTask models.Task
 
-	repo.Database.First(&deletedTask, id)
+	t.Database.First(&deletedTask, id)
 	if deletedTask.ID == 0 {
 		return 0, errors.New(utils.TaskNotFound)
 	}
 
-	result := repo.Database.Where("id = ?", id).Delete(&deletedTask)
+	result := t.Database.Where("id = ?", id).Delete(&deletedTask)
 
 	if result.RowsAffected == 0 {
 		return 0, errors.New("task not save")
@@ -99,8 +96,8 @@ func (repo *TaskRepository) DeleteTask(id string) (int64, error) {
 	return result.RowsAffected, nil
 }
 
-func (repo *TaskRepository) ExecuteTask(id string, task models.Task) (models.Task, error) {
-	repo.Database.First(&task, id)
+func (t *TaskRepository) ExecuteTask(id string, task models.Task) (models.Task, error) {
+	t.Database.First(&task, id)
 
 	if task.ID == 0 {
 		return models.Task{}, errors.New(utils.TaskNotFound)
@@ -110,7 +107,7 @@ func (repo *TaskRepository) ExecuteTask(id string, task models.Task) (models.Tas
 	timeNow := time.Now()
 	task.FinishedAt = &timeNow
 
-	result := repo.Database.Save(&task)
+	result := t.Database.Save(&task)
 
 	if result.RowsAffected == 0 {
 		return models.Task{}, errors.New("task not save")

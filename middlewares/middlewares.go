@@ -16,8 +16,8 @@ func Authenticate() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		interceptorValue := formatInterceptorValues(c)
 
-		if interceptorValue != "POST/user/login" {
-			tokenString := c.GetHeader("authorization")
+		if validateRequestMethod(interceptorValue, routesWithAuthentication) {
+			tokenString := c.GetHeader("Authorization")
 			if tokenString == "" {
 				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 					"error": "token not provided",
