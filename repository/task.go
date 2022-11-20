@@ -23,7 +23,7 @@ type TaskRepository struct {
 	Database *gorm.DB
 }
 
-var RepositoryServices ITaskRepository
+var TaskRepositoryServices ITaskRepository
 
 func NewTaskRepository() ITaskRepository {
 	return &TaskRepository{Database: database.DB}
@@ -90,7 +90,7 @@ func (t *TaskRepository) DeleteTask(id string) (int64, error) {
 	result := t.Database.Where("id = ?", id).Delete(&deletedTask)
 
 	if result.RowsAffected == 0 {
-		return 0, errors.New("task not save")
+		return 0, errors.New("task not deleted")
 	}
 
 	return result.RowsAffected, nil

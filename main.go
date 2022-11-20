@@ -47,13 +47,19 @@ func main() {
 
 	router.Use(middlewares.Authenticate())
 
+	database.Conn()
+
 	//Microservices:
 	switch os.Getenv("SERVICE") {
 	case "users":
 		routes.AddUserRoutes(router)
+		repository.UserRepositoryServices = repository.NewUserRepository()
 	case "tasks":
 		routes.AddTaskRoutes(router)
+		repository.TaskRepositoryServices = repository.NewTaskRepository()
 	default:
+		repository.UserRepositoryServices = repository.NewUserRepository()
+		repository.TaskRepositoryServices = repository.NewTaskRepository()
 		routes.AddUserRoutes(router)
 		routes.AddTaskRoutes(router)
 	}
@@ -65,9 +71,6 @@ func main() {
 
 	// start API server
 	go func() {
-		database.Conn()
-		repository.RepositoryServices = repository.NewTaskRepository()
-
 		fmt.Printf("%s API listening on port %s\n", cases.Title(language.AmericanEnglish).String(os.Getenv("SERVICE")), httpPort)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			os.Exit(1)

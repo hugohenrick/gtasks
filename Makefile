@@ -23,6 +23,7 @@ services:
 
 generate-mock:
 	cd repository && mockery --name=ITaskRepository --filename=task.go --outpkg=mock --output=../mock
+	cd repository && mockery --name=IUserRepository --filename=user.go --outpkg=mock --output=../mock
 
 generate-docs:
 	swag init --parseDependency

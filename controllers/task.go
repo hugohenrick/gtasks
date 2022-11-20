@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hugohenrick/gtasks/database"
 	"github.com/hugohenrick/gtasks/models"
 	"github.com/hugohenrick/gtasks/repository"
 	"github.com/hugohenrick/gtasks/utils"
@@ -34,7 +33,7 @@ func GetTasks(c *gin.Context) {
 		task.UserId = userId
 	}
 
-	tasks, err := repository.RepositoryServices.FindTasks(task)
+	tasks, err := repository.TaskRepositoryServices.FindTasks(task)
 	if err != nil {
 		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v: %v", utils.InvalidJsonProvided, err))
 		return
@@ -70,7 +69,12 @@ func CreateTask(c *gin.Context) {
 		task.UserId = userId
 	}
 
-	database.DB.Create(&task)
+	task, err := repository.TaskRepositoryServices.CreateTask(task)
+	if err != nil {
+		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", err))
+		return
+	}
+
 	utils.SendJSONResponse(c, http.StatusOK, task)
 }
 
@@ -82,7 +86,12 @@ func GetTaskById(c *gin.Context) {
 		return
 	}
 
-	database.DB.Preload("User").First(&task, id)
+	task, err := repository.TaskRepositoryServices.FindTaskById(fmt.Sprint(id))
+	if err != nil {
+		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", err))
+		return
+	}
+
 	utils.SendJSONResponse(c, http.StatusOK, task)
 }
 
@@ -91,12 +100,6 @@ func UpdateTask(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", utils.UserIdRequired))
-		return
-	}
-
-	database.DB.First(&task, id)
-	if task.ID == 0 {
-		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", utils.TaskNotFound))
 		return
 	}
 
@@ -118,13 +121,16 @@ func UpdateTask(c *gin.Context) {
 		return
 	}
 
-	database.DB.Save(&task)
+	_, err := repository.TaskRepositoryServices.UpdateTask(fmt.Sprint(id), task)
+	if err != nil {
+		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", err))
+		return
+	}
+
 	utils.SendJSONResponse(c, http.StatusOK, "success")
 }
 
 func DeleteTask(c *gin.Context) {
-	var task models.Task
-
 	isManagerRaw, ok := c.Get("isManager")
 	if !ok || isManagerRaw == nil {
 		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", utils.UserNotFound))
@@ -143,18 +149,12 @@ func DeleteTask(c *gin.Context) {
 		return
 	}
 
-	database.DB.First(&task, id)
-	if task.ID == 0 {
-		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", utils.TaskNotFound))
+	_, err := repository.TaskRepositoryServices.DeleteTask(fmt.Sprint(id))
+	if err != nil {
+		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", err))
 		return
 	}
 
-	if err := c.ShouldBind(&task); err != nil {
-		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v: %v", utils.InvalidJsonProvided, err))
-		return
-	}
-
-	database.DB.Delete(&task)
 	utils.SendJSONResponse(c, http.StatusOK, "success")
 }
 
@@ -183,9 +183,9 @@ func ExecuteTask(c *gin.Context) {
 	timeNow := time.Now()
 	task.FinishedAt = &timeNow
 
-	_, err := repository.RepositoryServices.ExecuteTask(id, task)
+	_, err := repository.TaskRepositoryServices.ExecuteTask(id, task)
 	if err != nil {
-		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v: %v", utils.InvalidJsonProvided, err))
+		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", err))
 		return
 	}
 

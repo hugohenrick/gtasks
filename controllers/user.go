@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
-	"github.com/hugohenrick/gtasks/database"
 	"github.com/hugohenrick/gtasks/models"
+	"github.com/hugohenrick/gtasks/repository"
 	"github.com/hugohenrick/gtasks/utils"
 )
 
@@ -22,14 +22,24 @@ func CreateUser(c *gin.Context) {
 	hashPassword, _ := utils.HashPassword(user.Password)
 	user.Password = hashPassword
 
-	database.DB.Create(&user)
+	user, err := repository.UserRepositoryServices.CreateUser(user)
+	if err != nil {
+		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", err))
+		return
+	}
+
 	utils.SendJSONResponse(c, http.StatusOK, user)
 }
 
 func GetUsers(c *gin.Context) {
 	var users []models.User
 
-	database.DB.Find(&users)
+	users, err := repository.UserRepositoryServices.FindUsers()
+	if err != nil {
+		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", err))
+		return
+	}
+
 	utils.SendJSONResponse(c, http.StatusOK, users)
 }
 
@@ -47,7 +57,7 @@ func LoginUser(c *gin.Context) {
 	email := user.Email
 	password := user.Password
 
-	err := database.DB.Where("email = ?", email).First(&dbUser).Error
+	dbUser, err := repository.UserRepositoryServices.FindUserByEmail(email)
 	if err != nil {
 		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v: %v", utils.UserNotFound, err))
 		return

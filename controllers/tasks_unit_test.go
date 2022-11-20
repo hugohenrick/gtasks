@@ -21,7 +21,7 @@ func TestGetTasks(t *testing.T) {
 
 		iTaskMock := new(taskMock.ITaskRepository)
 		iTaskMock.On("FindTasks", tmock.Anything, tmock.Anything, tmock.Anything).Return(nil, nil)
-		repository.RepositoryServices = iTaskMock
+		repository.TaskRepositoryServices = iTaskMock
 
 		w := httptest.NewRecorder()
 		c, router := gin.CreateTestContext(w)
