@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/golang-jwt/jwt"
 	"github.com/hugohenrick/gtasks/models"
 	"github.com/hugohenrick/gtasks/repository"
@@ -14,7 +15,7 @@ import (
 
 func CreateUser(c *gin.Context) {
 	var user models.User
-	if err := c.ShouldBind(&user); err != nil {
+	if err := c.ShouldBindWith(&user, binding.JSON); err != nil {
 		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v: %v", utils.InvalidJsonProvided, err))
 		return
 	}
@@ -48,7 +49,7 @@ func LoginUser(c *gin.Context) {
 	var user models.UserLogin
 	var hmacSampleSecret []byte
 
-	if err := c.ShouldBindJSON(&user); err != nil {
+	if err := c.ShouldBindWith(&user, binding.JSON); err != nil {
 		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v: %v", utils.InvalidJsonProvided, err))
 		return
 	}

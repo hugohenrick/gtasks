@@ -3,9 +3,11 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/hugohenrick/gtasks/models"
 	"github.com/hugohenrick/gtasks/repository"
 	"github.com/hugohenrick/gtasks/utils"
@@ -44,7 +46,7 @@ func GetTasks(c *gin.Context) {
 
 func CreateTask(c *gin.Context) {
 	var task models.Task
-	if err := c.ShouldBind(&task); err != nil {
+	if err := c.ShouldBindWith(&task, binding.JSON); err != nil {
 		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v: %v", utils.InvalidJsonProvided, err))
 		return
 	}
@@ -80,7 +82,7 @@ func CreateTask(c *gin.Context) {
 
 func GetTaskById(c *gin.Context) {
 	var task models.Task
-	id := c.Param("id")
+	id := strings.TrimSpace(c.Param("id"))
 	if id == "" {
 		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", utils.UserIdRequired))
 		return
@@ -103,8 +105,18 @@ func UpdateTask(c *gin.Context) {
 		return
 	}
 
-	if err := c.ShouldBind(&task); err != nil {
+	if err := c.ShouldBindWith(&task, binding.JSON); err != nil {
 		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v: %v", utils.InvalidJsonProvided, err))
+		return
+	}
+
+	if task.Title == "" {
+		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", utils.TaskTitleRequired))
+		return
+	}
+
+	if task.Summary == "" {
+		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", utils.TaskSummaryRequired))
 		return
 	}
 
@@ -143,7 +155,7 @@ func DeleteTask(c *gin.Context) {
 		return
 	}
 
-	id := c.Param("id")
+	id := strings.TrimSpace(c.Param("id"))
 	if id == "" {
 		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", utils.UserIdRequired))
 		return
@@ -160,7 +172,7 @@ func DeleteTask(c *gin.Context) {
 
 func ExecuteTask(c *gin.Context) {
 	var task models.Task
-	id := c.Param("id")
+	id := strings.TrimSpace(c.Param("id"))
 	if id == "" {
 		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", utils.UserIdRequired))
 		return
@@ -174,6 +186,12 @@ func ExecuteTask(c *gin.Context) {
 
 	userId := userIdRaw.(uint32)
 
+	task, err := repository.TaskRepositoryServices.FindTaskById(fmt.Sprint(id))
+	if err != nil {
+		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", err))
+		return
+	}
+
 	if task.UserId != userId {
 		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", utils.UserCannotChangeTaskAnotherUser))
 		return
@@ -183,7 +201,7 @@ func ExecuteTask(c *gin.Context) {
 	timeNow := time.Now()
 	task.FinishedAt = &timeNow
 
-	_, err := repository.TaskRepositoryServices.ExecuteTask(id, task)
+	_, err = repository.TaskRepositoryServices.ExecuteTask(id, task)
 	if err != nil {
 		utils.SendJSONError(c, http.StatusBadRequest, fmt.Errorf("%v", err))
 		return
