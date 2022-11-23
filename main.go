@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hugohenrick/gtasks/database"
 	"github.com/hugohenrick/gtasks/middlewares"
+	"github.com/hugohenrick/gtasks/rabbitmq"
 	"github.com/hugohenrick/gtasks/repository"
 	"github.com/hugohenrick/gtasks/routes"
 	"github.com/hugohenrick/gtasks/utils"
@@ -63,6 +64,10 @@ func main() {
 		routes.AddUserRoutes(router)
 		routes.AddTaskRoutes(router)
 	}
+
+	//Message Broker
+	ctx := context.Background()
+	rabbitmq.Start(ctx)
 
 	server := &http.Server{
 		Addr:    httpPort,

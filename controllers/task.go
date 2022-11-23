@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/hugohenrick/gtasks/models"
+	"github.com/hugohenrick/gtasks/rabbitmq"
 	"github.com/hugohenrick/gtasks/repository"
 	"github.com/hugohenrick/gtasks/utils"
 )
@@ -208,4 +210,7 @@ func ExecuteTask(c *gin.Context) {
 	}
 
 	utils.SendJSONResponse(c, http.StatusOK, "success")
+
+	msg := "The tech " + task.User.Name + " performed the task " + task.Title + " on date " + task.FinishedAt.Format("2006-01-02 15:04:05")
+	rabbitmq.PublishTask(context.Background(), msg)
 }

@@ -44,7 +44,7 @@ func (t *TaskRepository) FindTasks(task models.Task) ([]models.Task, error) {
 func (t *TaskRepository) FindTaskById(id string) (models.Task, error) {
 	var task models.Task
 
-	result := t.Database.First(&task, "id = ?", id)
+	result := t.Database.Preload("User").First(&task, "id = ?", id)
 
 	if result.RowsAffected == 0 {
 		return models.Task{}, errors.New("payment data not found")
