@@ -16,16 +16,17 @@ import (
 	"github.com/hugohenrick/gtasks/rabbitmq"
 	"github.com/hugohenrick/gtasks/repository"
 	"github.com/hugohenrick/gtasks/routes"
-	"github.com/hugohenrick/gtasks/utils"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
 
-func init() {
-	utils.LoadEnv()
-}
+// func init() {
+// 	utils.LoadEnv()
+// }
 
 func main() {
+
+	fmt.Printf("INICIOOOOO API listening on port")
 
 	if os.Getenv("GIN_MODE") == "" {
 		gin.SetMode(gin.ReleaseMode)

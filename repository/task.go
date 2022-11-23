@@ -35,7 +35,7 @@ func (t *TaskRepository) FindTasks(task models.Task) ([]models.Task, error) {
 	result := t.Database.Preload("User").Find(&tasks, task)
 
 	if result.RowsAffected == 0 {
-		return []models.Task{}, errors.New("payment data not found")
+		return []models.Task{}, errors.New("task data not found")
 	}
 
 	return tasks, nil
@@ -47,7 +47,7 @@ func (t *TaskRepository) FindTaskById(id string) (models.Task, error) {
 	result := t.Database.Preload("User").First(&task, "id = ?", id)
 
 	if result.RowsAffected == 0 {
-		return models.Task{}, errors.New("payment data not found")
+		return models.Task{}, errors.New("task data not found")
 	}
 
 	return task, nil

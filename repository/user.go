@@ -30,7 +30,7 @@ func (t *UserRepository) FindUsers() ([]models.User, error) {
 	result := database.DB.Find(&users)
 
 	if result.RowsAffected == 0 {
-		return []models.User{}, errors.New("payment data not found")
+		return []models.User{}, errors.New("user data not found")
 	}
 
 	return users, nil
